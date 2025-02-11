@@ -77,7 +77,7 @@ Sería nuestra imagen base alpine es una distribución ligera
     en la terminal:
     pip freeze > requirements.txt
 # Todo completo sería:
-    FROM 3.13.2-alpine3.21
+    FROM python:3.13.2-alpine3.21
     WORKDIR /app
 
 
@@ -94,5 +94,55 @@ Sería nuestra imagen base alpine es una distribución ligera
 
     CMD ["python", "manage.py", "runserver" , "0.0.0.0:8000"]
 
-# Ahora para ejecutar colocamos:
+# Ahora para construir el contenedor colocamos:
     docker build -t devjamer/docker-django .
+
+# Ahora para ejecutar el contenedor colocamos:
+    docker run devjamer/docker-django (no funcionará porque está compartiendo el puerto)
+    docker run -p 8000:8000 devjamer/docker-django (este si funciona)
+
+# Agregamos en dockerfile
+    Para que se pueda ejecutar y mostrar logs así como con : python manage.py runserver
+
+    En el archivo Dockerfile añadimos:
+    ENV PYTHONUNBUFFERED=1
+
+# Sería:
+    FROM python:3.13.2-alpine3.21
+    ENV PYTHONUNBUFFERED=1
+    WORKDIR /app
+
+
+
+    RUN apk update \
+            && apk add --no-cache gcc musl-dev postgresql-dev python3-dev libffi-dev \
+            && pip install --upgrade pip
+
+    COPY ./requirements.txt ./
+
+    RUN pip install -r requirements.txt
+
+    COPY ./ ./
+
+    CMD ["python", "manage.py", "runserver" , "0.0.0.0:8000"]
+
+# Ahora por si quiero hacer un cambio y no correr de nuevo build
+
+    docker run -v /c/Users/jamer/Desktop/Django/DjangoDocker:/app -p 8000:8000 devjamer/docker-django
+
+# AHORA SI QUEREMOS QUE HAGA EL RUN EN SEGUNDO PLANO 
+    Para que no te muestre los logs:
+
+    docker run -d -v /c/Users/jamer/Desktop/Django/DjangoDocker:/app -p 8000:8000 devjamer/docker-django
+
+# Y SI QUEREMOS VER EL LOG:
+    docker logs --flow (el código)
+
+# Para saber que contenedores se está ejecutando
+    docker ps
+
+# PARA PARAR EL PROCESO 
+    docker stop (colocar el id del contenedor)
+
+# PARA AGREGAR COMANDOS DENTRO DEL CONTENEDOR:
+ docker exec -it (Colocas el id del contenedor) /bin/sh
